@@ -13,15 +13,15 @@ class Pipeline:
     def run_pipeline(self):
         try:
             logging.info('run_pipeline method started')
-            ingest_process = ingest.Ingest(self.spark)
+            ingest_process = ingest.Ingest(self.spark,self.file_config)
             #ingest_process.read_from_pg()
             #ingest_process.read_from_pg_using_jdbc_driver()
             df = ingest_process.ingest_data()
             df.show()
-            tranform_process = transform.Transform(self.spark)
+            tranform_process = transform.Transform(self.spark,self.file_config)
             transformed_df = tranform_process.transform_data(df)
             transformed_df.show()
-            persist_process = persist.Persist(self.spark)
+            persist_process = persist.Persist(self.spark,self.file_config)
             #persist_process.insert_into_pg()
             persist_process.persist_data(transformed_df)
             logging.info('run_pipeline method ended')
@@ -88,5 +88,6 @@ if __name__ == '__main__':
     logging.info('Spark Session created')
     pipeline.run_pipeline()
     logging.info('Pipeline executed')
+
 
 

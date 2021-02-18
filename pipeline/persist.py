@@ -10,16 +10,17 @@ import configparser
 class Persist:
     logging.config.fileConfig(str(get_project_root())+"/resources/configs/logging.conf")
 
-    def __init__(self,spark):
+    def __init__(self,spark,file_config):
         self.spark=spark
+        self.file_config = file_config
 
     def persist_data(self,df):
         try:
             logger = logging.getLogger("Persist")
             logger.info('Persisting')
-            config = configparser.ConfigParser()
-            config.read('pipeline/resources/pipeline.ini')
-            target_table = config.get('DB_CONFIGS','TARGET_PG_TABLE')
+            #config = configparser.ConfigParser()
+            #config.read('pipeline/resources/pipeline.ini')
+            target_table = self.file_config.get('DB_CONFIGS','TARGET_PG_TABLE')
             logger.info('PG Target table is '+str(target_table))
 
             #df.coalesce(1).write.option("header", "true").csv("transformed_retailstore")

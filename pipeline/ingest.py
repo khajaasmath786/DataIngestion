@@ -10,8 +10,9 @@ from pipeline.utils import get_project_root
 class Ingest:
     logging.config.fileConfig(str(get_project_root())+"/resources/configs/logging.conf")
 
-    def __init__(self,spark):
+    def __init__(self,spark,file_config):
         self.spark=spark
+        self.file_config=file_config
 
     def ingest_data(self):
         logger = logging.getLogger("Ingest")
