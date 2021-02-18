@@ -6,7 +6,7 @@ import logging.config
 from pipeline.utils import get_project_root
 import sys
 import getopt
-
+import configparser
 class Pipeline:
 
     logging.config.fileConfig(str(get_project_root())+"/resources/configs/logging.conf")
@@ -34,8 +34,9 @@ class Pipeline:
         return
 
     def create_spark_session(self):
+        app_name = self.file_config.get('APP_CONFIGS', 'APP_NAME')
         self.spark = SparkSession.builder\
-            .appName("my first spark app")\
+            .appName(str(app_name))\
             .config("spark.driver.extraClassPath","pipeline/postgresql-42.2.18.jar")\
             .enableHiveSupport().getOrCreate()
 
@@ -58,7 +59,7 @@ class Pipeline:
         #Treat empty strings as null
         self.spark.sql("alter table fxxcoursedb.fx_course_table set tblproperties('serialization.null.format'='')")
 
-    def printUsage(self,arguments):
+    def verifyUsage(self,arguments):
         self.config_file = ''
         try:
             opts, args = getopt.getopt(arguments, "c:")
@@ -73,13 +74,15 @@ class Pipeline:
                 logging.info('test.py -c <configfile>  ')
             elif opt in ("-c"):
                 self.config_file = arg
+                self.file_config = configparser.ConfigParser()
+                self.file_config.read(str(get_project_root())+"/resources/pipeline.ini")
         logging.info('Input file is '+str(self.config_file))
 
 
 if __name__ == '__main__':
     logging.info('Application started')
     pipeline = Pipeline()
-    pipeline.printUsage(sys.argv[1:])
+    pipeline.verifyUsage(sys.argv[1:])
     pipeline.create_spark_session()
     pipeline.create_hive_table()
     logging.info('Spark Session created')
