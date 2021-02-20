@@ -1,0 +1,94 @@
+https://spark.apache.org/docs/2.1.0/api/python/pyspark.sql.html
+-------
+
+
+pythoninterpreter -- pyspark (installation for every project, add cliking + )
+pythoninterpreter -- pyscopg2
+Main file --> add environment variables--
+SPARK_HOME  C:\spark3
+PYTHONPATH  C:\spark3
+
+You can have methods in main class outside and inside the class level
+Inside class you should have self
+-----
+To import other Python files ..
+
+import pythonfilename   (Not class name)
+import filename
+
+Instanitate Class 
+-------
+classInstanceVar=filename.ClassName()
+
+Invoke Method
+------
+classInstanceVar.methodName()
+
+
+------------------
+create class level method(self): to create sparksession object and assign it to self.spark
+
+self.spark is class level variable that was assigned.. anything assigned to self with be class level
+when you assign any varaible to self. , it is available to whole class in python
+To access it you need to call again as self.spark
+------------------
+
+Pass self.spark variable to other classes now.
+we can pass it to by method --> not explained
+we can do other way by calling init method. Initializing variables during class initialization
+
+Syntax:
+ def __init__(self,spark):
+ self.spark=spark    --> right spark is from the method
+
+Initailaize the spark session during object creation
+ingest_process_instance=ingest.Ingest(self.spark)
+
+-------------------
+1. If you access instance or class level variable inside main method, you need to do ClassInstanceVar.FieldName not self.fieldname inside main 
+if you access instance variable in method, then call as self.variablename
+
+Check AccessMethodClassVars for this
+
+Any method you declare will follow by self argument first.
+calling method need not require to call self. just pass values
+you cannot have multiple constructors in python
+-----
+   def ingest_data(self):
+        print("Ingesting from csv")
+        customer_df = self.spark.read.csv("retailstore.csv",header=True)
+        return customer_df
+
+    def ingest_data(self,spark):   #  This is by Asmath
+        print("Ingesting from csv")
+        customer_df = spark.read.csv("retailstore.csv",header=True)
+        return customer_df
+
+   ingest_process = ingest.Ingest(self.spark) # Passing to constructor directly
+   ingest_process = ingest.Ingest() # This is by Asmath . Passing var to method instead of constructor
+
+        df = ingest_process.ingest_data() // directly calling the method with spark var instantiated in init 
+        df = ingest_process.ingest_data(self.spark) # This is by Asmath - Calling the method by passing spark object
+
+There is no multiple constructors in Python like java
+       
+------
+Logging
+
+Console handlers overrides the root level logger but it cannot be higher than that
+
+Lets say Console is Info and Root is Error .. Then only error will take precedence
+
+--------
+
+
+
+
+https://stackoverflow.com/questions/25389095/python-get-path-of-root-project-structure
+
+https://www.tutorialspoint.com/python/python_command_line_arguments.htm
+
+https://www.datasciencelearner.com/integrate-github-with-pycharm/
+
+
+
