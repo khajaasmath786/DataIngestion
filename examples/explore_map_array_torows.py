@@ -1,4 +1,6 @@
 import sys
+from pstats import SortKey
+
 from pyspark.sql import SparkSession
 from pipeline import transform, persist, ingest
 import logging
@@ -10,48 +12,47 @@ import configparser
 from pyspark.sql.types import StructType,StructField, StringType, IntegerType,ArrayType
 from pyspark.sql.functions import *
 from pyspark.sql import functions as F
-class FilterColumns:
+class ExplodeMapArraysToRows:
 
     logging.config.fileConfig(str(get_project_root())+"/resources/configs/logging.conf")
     def run_pipeline(self):
         try:
             logging.info("https://sparkbyexamples.com/pyspark-tutorial/")
-            logging.info('run_pipeline method started --> https://sparkbyexamples.com/pyspark/pyspark-withcolumn/')
-            arrayStructureData = [
-                (("James", "", "Smith"), ["Java", "Scala", "C++"], "OH", "M"),
-                (("Anna", "Rose", ""), ["Spark", "Java", "C++"], "NY", "F"),
-                (("Julia", "", "Williams"), ["CSharp", "VB"], "OH", "F"),
-                (("Maria", "Anne", "Jones"), ["CSharp", "VB"], "NY", "M"),
-                (("Jen", "Mary", "Brown"), ["CSharp", "VB"], "NY", "M"),
-                (("Mike", "Mary", "Williams"), ["Python", "VB"], "OH", "M")
-            ]
-            arrayStructureSchema = StructType([
-                StructField('name', StructType([
-                    StructField('firstname', StringType(), True),
-                    StructField('middlename', StringType(), True),
-                    StructField('lastname', StringType(), True)
-                ])),
-                StructField('languages', ArrayType(StringType()), True),
-                StructField('state', StringType(), True),
-                StructField('gender', StringType(), True)
-            ])
-            df = self.spark.createDataFrame(data=arrayStructureData, schema=arrayStructureSchema)
+            logging.info('run_pipeline method started --> https://sparkbyexamples.com/pyspark/pyspark-explode-array-and-map-columns-to-rows/')
+            arrayData = [
+                ('James', ['Java', 'Scala'], {'hair': 'black', 'eye': 'brown'}),
+                ('Michael', ['Spark', 'Java', None], {'hair': 'brown', 'eye': None}),
+                ('Robert', ['CSharp', ''], {'hair': 'red', 'eye': ''}),
+                ('Washington', None, None),
+                ('Jefferson', ['1', '2'], {})]
+
+            df = self.spark.createDataFrame(data=arrayData, schema=['name', 'knownLanguages', 'properties'])
             df.printSchema()
-            df.show(truncate=False)
+            df.show()
 
-            # filter dataframe where state= OH
-            df.filter(df.state == "OH").show(truncate=False)
-            df.filter(F.col("state")=="OH").show(truncate=False)
+            from pyspark.sql.functions import explode
+            df2 = df.select(df.name, explode(df.knownLanguages))
+            df2.printSchema()
+            df2.show()
+            df3 = df.withColumn("ExplodedColumn", explode(df.knownLanguages))
+            df3.printSchema()
+            df3.show()
 
-            # Multiple conditions use ( and it is mandatory sometimes
-            df.filter((df.state == "OH") & (df.gender == "M")).show(truncate=False)
-            df.filter((F.col("state") == "OH") & (F.col("gender")  == "M")).show(truncate=False)
+            # Exploding map and Array
+            from pyspark.sql.functions import explode
 
-            # Filter array date_add
-            df.filter(array_contains(df.languages, "Java") & (df.state == "OH") & (df.gender == "M")) \
-                .show(truncate=False)
+            logging.info("Asmath --> Only one generator allowed per select clause but found 2: explode(knownLanguages), explode(properties);")
+            #Error: Only one generator allowed per select clause but found 2: explode(knownLanguages), explode(properties);
+            #df5 = df.select(df.name, explode(df.knownLanguages), explode(df.properties))
+            df5 = df.withColumn("ExplodedArrayColumn", explode(df.knownLanguages))
+            df5.printSchema() # it wont throw error if you dont pass () but it wont print schema
+            df6=df5.withColumn("ExplodedMapColumn", explode(df5.properties)) # pass df5 here not df
+            df6.printSchema()
+            df6.show()
 
-            df.filter((array_contains(F.col("languages"), "Java")) & (F.col("state") == "OH") & (F.col("gender") == "M")).show(truncate=False)
+
+            # Explode Array
+
             logging.info('run_pipeline method ended')
         except Exception as exp:
             logging.error("An error occured while running the pipeline > " +str(exp) )
@@ -111,7 +112,7 @@ class FilterColumns:
 
 if __name__ == '__main__':
     logging.info('Application started')
-    pipeline = FilterColumns()
+    pipeline = ExplodeMapArraysToRows()
     pipeline.verifyUsage(sys.argv[1:])
     pipeline.create_spark_session()
     pipeline.run_pipeline()

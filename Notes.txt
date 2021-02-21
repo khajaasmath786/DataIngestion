@@ -1,6 +1,6 @@
 https://spark.apache.org/docs/2.1.0/api/python/pyspark.sql.html
 -------
-
+pyspark -- always try to use df.fieldname instead of F.col("")
 
 pythoninterpreter -- pyspark (installation for every project, add cliking + )
 pythoninterpreter -- pyscopg2
