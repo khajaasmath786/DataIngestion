@@ -38,7 +38,9 @@ class AggregateFunctions:
                           ]
             schema = ["employee_name", "department", "salary"]
 
-            df = self.spark.createDataFrame(data=simpleData, schema=schema).schema()
+            df = self.spark.createDataFrame(data=simpleData, schema=schema).cache()
+            df.show(truncate=False)
+
             from pyspark.sql.functions import approx_count_distinct, collect_list
             from pyspark.sql.functions import collect_set, sum, avg, max, countDistinct, count
             from pyspark.sql.functions import first, last, kurtosis, min, mean, skewness
@@ -61,7 +63,8 @@ class AggregateFunctions:
             print("Distinct Count of Department & Salary: " + str(df2.collect()[0][0]))
 
             print("count: " + str(df.select(count("salary")).collect()[0]))
-            df.select(first("salary")).show(truncate=False)
+            dffirst=df.select(first("salary"))
+            dffirst.show(truncate=False)
             df.select(last("salary")).show(truncate=False)
             df.select(kurtosis("salary")).show(truncate=False)
             df.select(max("salary")).show(truncate=False)
