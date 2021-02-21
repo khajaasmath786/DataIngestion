@@ -12,46 +12,68 @@ import configparser
 from pyspark.sql.types import StructType,StructField, StringType, IntegerType,ArrayType
 from pyspark.sql.functions import *
 from pyspark.sql import functions as F
-class ExplodeMapArraysToRows:
+
+
+class AggregateFunctions:
 
     logging.config.fileConfig(str(get_project_root())+"/resources/configs/logging.conf")
     def run_pipeline(self):
         try:
-            logging.info("https://sparkbyexamples.com/pyspark-tutorial/")
+            logging.info("https://sparkbyexamples.com/pyspark/pyspark-aggregate-functions/")
+            # check collect_list and collect_set
+            #collect_set() function returns all values from an input column with duplicate values eliminated.
+            #collect_list() function returns all values from an input column with duplicates
+
             logging.info('run_pipeline method started --> https://sparkbyexamples.com/pyspark/pyspark-explode-array-and-map-columns-to-rows/')
-            arrayData = [
-                ('James', ['Java', 'Scala'], {'hair': 'black', 'eye': 'brown'}),
-                ('Michael', ['Spark', 'Java', None], {'hair': 'brown', 'eye': None}),
-                ('Robert', ['CSharp', ''], {'hair': 'red', 'eye': ''}),
-                ('Washington', None, None),
-                ('Jefferson', ['1', '2'], {})]
+            simpleData = [("James", "Sales", 3000),
+                          ("Michael", "Sales", 4600),
+                          ("Robert", "Sales", 4100),
+                          ("Maria", "Finance", 3000),
+                          ("James", "Sales", 3000),
+                          ("Scott", "Finance", 3300),
+                          ("Jen", "Finance", 3900),
+                          ("Jeff", "Marketing", 3000),
+                          ("Kumar", "Marketing", 2000),
+                          ("Saif", "Sales", 4100)
+                          ]
+            schema = ["employee_name", "department", "salary"]
 
-            df = self.spark.createDataFrame(data=arrayData, schema=['name', 'knownLanguages', 'properties']).cache()
+            df = self.spark.createDataFrame(data=simpleData, schema=schema).schema()
+            from pyspark.sql.functions import approx_count_distinct, collect_list
+            from pyspark.sql.functions import collect_set, sum, avg, max, countDistinct, count
+            from pyspark.sql.functions import first, last, kurtosis, min, mean, skewness
+            from pyspark.sql.functions import stddev, stddev_samp, stddev_pop, sumDistinct
+            from pyspark.sql.functions import variance, var_samp, var_pop
             df.printSchema()
-            df.show()
+            df.show(truncate=False)
 
-            from pyspark.sql.functions import explode
-            df2 = df.select(df.name, explode(df.knownLanguages))
-            df2.printSchema()
-            df2.show()
-            df3 = df.withColumn("ExplodedColumn", explode(df.knownLanguages))
-            df3.printSchema()
-            df3.show()
+            print("approx_count_distinct: " + \
+                  str(df.select(approx_count_distinct("salary")).collect()[0][0]))
 
-            # Exploding map and Array
-            from pyspark.sql.functions import explode
+            print("avg: " + str(df.select(avg("salary")).collect()[0][0]))
 
-            logging.info("Asmath --> Only one generator allowed per select clause but found 2: explode(knownLanguages), explode(properties);")
-            #Error: Only one generator allowed per select clause but found 2: explode(knownLanguages), explode(properties);
-            #df5 = df.select(df.name, explode(df.knownLanguages), explode(df.properties))
-            df5 = df.withColumn("ExplodedArrayColumn", explode(df.knownLanguages))
-            df5.printSchema() # it wont throw error if you dont pass () but it wont print schema
-            df6=df5.withColumn("ExplodedMapColumn", explode(df5.properties)) # pass df5 here not df
-            df6.printSchema()
-            df6.show()
+            df.select(collect_list("salary")).show(truncate=False)
 
+            df.select(collect_set("salary")).show(truncate=False)
 
-            # Explode Array
+            df2 = df.select(countDistinct("department", "salary"))
+            df2.show(truncate=False)
+            print("Distinct Count of Department & Salary: " + str(df2.collect()[0][0]))
+
+            print("count: " + str(df.select(count("salary")).collect()[0]))
+            df.select(first("salary")).show(truncate=False)
+            df.select(last("salary")).show(truncate=False)
+            df.select(kurtosis("salary")).show(truncate=False)
+            df.select(max("salary")).show(truncate=False)
+            df.select(min("salary")).show(truncate=False)
+            df.select(mean("salary")).show(truncate=False)
+            df.select(skewness("salary")).show(truncate=False)
+            df.select(stddev("salary"), stddev_samp("salary"), \
+                      stddev_pop("salary")).show(truncate=False)
+            df.select(sum("salary")).show(truncate=False)
+            df.select(sumDistinct("salary")).show(truncate=False)
+            df.select(variance("salary"), var_samp("salary"), var_pop("salary")) \
+                .show(truncate=False)
 
             logging.info('run_pipeline method ended')
         except Exception as exp:
@@ -112,7 +134,7 @@ class ExplodeMapArraysToRows:
 
 if __name__ == '__main__':
     logging.info('Application started')
-    pipeline = ExplodeMapArraysToRows()
+    pipeline = AggregateFunctions()
     pipeline.verifyUsage(sys.argv[1:])
     pipeline.create_spark_session()
     pipeline.run_pipeline()

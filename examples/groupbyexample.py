@@ -14,7 +14,7 @@ from pyspark.sql.functions import *
 from pyspark.sql import functions as F
 
 
-class ExplodeMapArraysToRows:
+class GroupByExamples:
 
     logging.config.fileConfig(str(get_project_root())+"/resources/configs/logging.conf")
     def run_pipeline(self):
@@ -39,7 +39,7 @@ class ExplodeMapArraysToRows:
             #aggregrate function no need group by if you dont select other columns - This is defualt nature in spark, will not return other columns
             #https://stackoverflow.com/questions/6467216/is-it-possible-to-use-aggregate-function-in-a-select-statment-without-using-grou/6467287
             schema = ["employee_name", "department", "state", "salary", "age", "bonus"]
-            df = self.spark.createDataFrame(data=simpleData, schema=schema)
+            df = self.spark.createDataFrame(data=simpleData, schema=schema).cache()
             df.printSchema()
             df.show(truncate=False)
 
@@ -152,7 +152,7 @@ class ExplodeMapArraysToRows:
 
 if __name__ == '__main__':
     logging.info('Application started')
-    pipeline = ExplodeMapArraysToRows()
+    pipeline = GroupByExamples()
     pipeline.verifyUsage(sys.argv[1:])
     pipeline.create_spark_session()
     pipeline.run_pipeline()

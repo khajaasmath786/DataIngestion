@@ -25,7 +25,7 @@ class UpdateColumns:
                     ]
 
             columns = ["firstname", "middlename", "lastname", "dob", "gender", "salary"]
-            df = self.spark.createDataFrame(data=data, schema=columns)
+            df = self.spark.createDataFrame(data=data, schema=columns).cache()
             # Update column values and data type
             df2 = df.withColumn("salary", (F.col("salary") *2 ).cast("Integer"))
             df2.printSchema()
