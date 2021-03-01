@@ -37,7 +37,7 @@ class Pipeline:
         app_name = self.file_config.get('APP_CONFIGS', 'APP_NAME')
         self.spark = SparkSession.builder\
             .appName(str(app_name))\
-            .config("spark.driver.extraClassPath","pipeline/postgresql-42.2.18.jar")\
+            .config("spark.driver.extraClassPath",str(get_project_root())+"/resources/postgresql-42.2.18.jar")\
             .enableHiveSupport().getOrCreate()
 
     def create_hive_table(self):
